@@ -1,0 +1,115 @@
+
+-- Calling all the data
+Select 
+		*
+From dbo.[2018]
+
+Select 
+		*
+From dbo.[2019]
+
+Select 
+		*
+From dbo.[2020]
+
+
+Select
+		*
+From dbo.market_segment
+
+
+
+Select
+		*
+From dbo.meal_cost
+
+--Making CTE to combine Hotel data from 2018-2020
+with Hotels as(
+Select 
+		*
+From dbo.[2018]
+union
+Select 
+		*
+From dbo.[2019]
+union
+Select 
+		*
+From dbo.[2020])
+
+Select 
+		hotel, H.arrival_date_year Years,  
+		sum(H.adr*(H.stays_in_week_nights+H.stays_in_weekend_nights)*(1-m.Discount)) as Revenue_Discount_Counted
+From Hotels H
+Left Join dbo.market_segment m
+	on H.market_segment = m.market_segment
+Left join dbo.meal_cost me
+	on H.meal = me.meal
+group by hotel, h.arrival_date_year
+order by hotel, h.arrival_date_year, Revenue_Discount_Counted
+
+-- Best Selling Hotels
+with Hotels as(
+Select 
+		*
+From dbo.[2018]
+union
+Select 
+		*
+From dbo.[2019]
+union
+Select 
+		*
+From dbo.[2020])
+
+Select
+		hotel, count(*) Num_of_Room_Rented, sum(adr) Revenue,
+		sum(adr)/count(*) Average_Room_Cost
+From Hotels
+group by hotel
+
+
+-- Which Food is in demand
+with Hotels as(
+Select 
+		*
+From dbo.[2018]
+union
+Select 
+		*
+From dbo.[2019]
+union
+Select 
+		*
+From dbo.[2020])
+
+Select
+		Hotels.hotel, meal.meal, count(meal.meal)
+From Hotels 
+join dbo.meal_cost meal
+		on meal.meal = Hotels.meal
+group by meal.meal, Hotels.hotel
+order by Hotels.hotel, count(meal.meal) desc
+
+
+-- Booking Method
+with Hotels as(
+Select 
+		*
+From dbo.[2018]
+union
+Select 
+		*
+From dbo.[2019]
+union
+Select 
+		*
+From dbo.[2020])
+
+Select
+		Hotels.hotel,market.market_segment , count(market.market_segment)
+From Hotels 
+join dbo.market_segment market
+		on market.market_segment = Hotels.market_segment
+group by market.market_segment, Hotels.hotel
+order by Hotels.hotel, count(market.market_segment) desc
