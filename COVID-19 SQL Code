@@ -1,0 +1,223 @@
+
+Select *
+from dbo.Covid_19_in_the_World
+
+
+
+
+--EXPLORING COVID DATA
+
+
+
+
+--Changing date from nvarchar to date
+
+update dbo.Covid_19_in_the_World
+set case_date = convert(date, date)
+
+alter table dbo.Covid_19_in_the_World
+add case_date date
+
+
+-- Of course we should check our country first
+
+Select date, location, new_cases, total_cases, new_deaths, total_deaths
+From dbo.Covid_19_in_the_World
+where location like 'indo%'
+order by date
+
+
+
+
+
+SELECT LOCATION
+FROM DBO.Covid_19_in_the_World
+WHERE CONTINENT IS NULL
+GROUP BY LOCATION
+
+
+
+
+
+--Man... there is continent, entire world, even SES in the location and when I checked the continent column, it's empty
+
+
+DELETE
+FROM DBO.Covid_19_in_the_World
+WHERE CONTINENT IS NULL
+
+
+
+
+--Covid Cases in Indonesia
+
+
+Select 
+		location, MIN(new_cases) lowest_case, MAX(new_cases) highest_case,
+		MIN(new_DEATHS) lowest_death_case, MAX(new_DEATHS) highest_death_case,
+		SUM(convert(int, new_deaths)) total_deaths_final, Sum(new_CASES) total_cases_final,		
+		SUM(cast(new_deaths as int))/SUM(new_CASES)*100 Covid_death_percentage
+From dbo.Covid_19_in_the_World
+Where location like 'indo%'
+group by location
+
+
+
+
+
+
+Select 
+		location, MIN(new_cases) lowest_covid_case	
+From dbo.Covid_19_in_the_World
+group by location
+order by lowest_covid_case
+
+
+
+
+
+Select 
+		location, MAX(new_cases) highest_covid_case	
+From dbo.Covid_19_in_the_World
+group by location
+order by highest_covid_case desc
+
+
+
+
+
+Select 
+		location, MIN(new_DEATHS) lowest_death_case	
+From dbo.Covid_19_in_the_World
+group by location
+order by lowest_death_case	
+
+
+
+
+Select 
+		location, MAX(new_DEATHS) highest_death_case
+From dbo.Covid_19_in_the_World
+group by location
+order by highest_death_case desc	
+
+
+
+
+
+
+SELECT LOCATION, MAX(TOTAL_DEATHS)/MAX(TOTAL_CASES)*100 AS COVID_DEATH_PERCENTAGE
+FROM DBO.Covid_19_in_the_World
+GROUP BY location
+ORDER BY COVID_DEATH_PERCENTAGE DESC
+
+
+
+--Covid Cases from Every Country
+
+
+Select 
+		location, MIN(new_cases) lowest_covid_case, MAX(new_cases) highest_covid_case,
+		MIN(new_DEATHS) lowest_death_case, MAX(new_DEATHS) highest_death_case ,MAX(total_cases) total_cases, MAX(total_deaths) total_deaths,
+		MAX(convert(bigint, NEW_deaths)) total_deaths_final, MAX(NEW_CASES) total_cases_final,		
+		sum(cast(new_deaths as bigint))/sum(new_CASES)*100 Covid_death_percentage
+From dbo.Covid_19_in_the_World
+--Where location like 'indo%'
+group by location
+order by Covid_death_percentage DESC
+
+
+
+-- Why North Korean Covid death percentage is so high ?
+
+
+Select date, location, total_deaths, total_cases
+FROM dbo.Covid_19_in_the_World
+where location = 'north korea'
+
+
+
+--Covid Cases in the Continent
+
+
+Select 
+		continent, MIN(new_cases) lowest_covid_case, MAX(new_cases) highest_covid_case,
+		MIN(new_DEATHS) lowest_death_case, MAX(new_DEATHS) highest_death_case ,MAX(total_cases) total_cases, MAX(total_deaths) total_deaths,
+		MAX(convert(bigint, NEW_deaths)) total_deaths_final, MAX(NEW_CASES) total_cases_final,		
+		sum(cast(new_deaths as bigint))/sum(new_CASES)*100 Covid_death_percentage
+From dbo.Covid_19_in_the_World
+--Where location like 'indo%'
+group by continent
+order by Covid_death_percentage DESC
+
+
+--World Covid Case
+
+
+Select 
+		MIN(new_cases) lowest_covid_case, MAX(new_cases) highest_covid_case,
+		MIN(new_DEATHS) lowest_death_case, MAX(new_DEATHS) highest_death_case ,sum(new_cases) total_cases, sum(cast(new_deaths as bigint)) total_deaths,
+		MAX(convert(bigint, NEW_deaths)) total_deaths_final, MAX(NEW_CASES) total_cases_final,		
+		sum(cast(new_deaths as bigint))/sum(new_CASES)*100 Covid_death_percentage
+From dbo.Covid_19_in_the_World
+--Where location like 'indo%'
+
+
+
+
+
+alter table dbo.Covid_19_in_the_World
+add Months int
+
+alter table dbo.Covid_19_in_the_World
+add Years int
+
+update dbo.Covid_19_in_the_World
+set Months = datepart(Month, case_date)
+
+
+update dbo.Covid_19_in_the_World
+set Years = datepart(YEAR, case_date)
+
+
+
+select 
+		continent, location, sum(new_cases) as covid_case, sum(cast(new_deaths as bigint)) as covid_death,
+	Case
+		when sum(new_cases)=0 then null
+		Else sum(cast(new_deaths as bigint))/ sum(new_cases)*100 
+	End as Covid_Death_Percentage
+from dbo.Covid_19_in_the_World
+--where location like 'indo%'
+--where location = 'north korea'
+group by continent,location
+order by continent, location
+
+
+update dbo.Covid_19_in_the_World
+set new_cases = 0 where new_cases is null
+
+update dbo.Covid_19_in_the_World
+set new_deaths = 0 where new_deaths is null
+
+alter table dbo.Covid_19_in_the_World
+add Covid_
+
+
+
+
+Select 
+		Continent, Location, max(population) Population, sum(new_cases) Total_cases, 
+		sum(cast(new_people_vaccinated_smoothed as bigint)) Total_Vacc,
+		sum(cast(new_deaths as bigint)) Total_Deaths,
+	Case
+		when max(population)=0 then null
+		Else sum(cast(new_people_vaccinated_smoothed as bigint))/ max(population)*100
+	end as Vacc_Percentage_per_Population,
+	Case
+		when sum(new_cases)=0 then null
+		Else sum(cast(new_deaths as bigint))/ sum(new_cases)*100
+	end as Deaths_by_Covid_Percentage
+From dbo.Covid_19_in_the_World
+group by continent, location
+order by continent
